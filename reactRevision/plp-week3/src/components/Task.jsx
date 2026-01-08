@@ -4,8 +4,10 @@ export default function Task({ id, title, completed, onToggle }) {
             <span className={ completed ? "line-through text-gray-500" : "" }>
                 {title}
             </span>
-            <button className={`px-3 py-1 rounded ${completed ? "bg-green-200" : ""}`}>
-                {completed ? "undo" : "done"}
+            <button
+                onClick={() => onToggle && onToggle(id)}
+                className={`px-3 py-1 rounded ${completed ? 'bg-green-200' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                {completed ? 'Undo' : 'Done'}
             </button>
 
         </div>
