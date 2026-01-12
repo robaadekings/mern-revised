@@ -4,6 +4,15 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const app = express();
+// Validate required environment variables early
+const requiredEnvs = ['MONGO_URI', 'JWT_SECRET'];
+const missing = requiredEnvs.filter(k => !process.env[k]);
+if (missing.length) {
+	console.error('Missing required env vars:', missing.join(', '));
+	console.error('Please add them to server/.env and restart the server. Example: JWT_SECRET=some_long_random_value');
+	process.exit(1);
+}
+
 // Connect to database
 connectDB();
 

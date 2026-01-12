@@ -13,8 +13,13 @@ exports.signup = async (req, res) => {
 
     const user = await User.create({email, password: hashed});
 
-    const token = jwt.sign({id: user._id, role: user.role}, process.env.JWT_SECRET);
+    if (!process.env.JWT_SECRET) {
+        return res.status(500).json({ message: 'JWT_SECRET not configured on server' });
+    }
 
+    const token = jwt.sign({id: user._id, role: user.role}, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ token, user: { id: user._id, email: user.email, role: user.role } });
 
 };
 
@@ -30,6 +35,5 @@ exports.login = async (req, res) => {
     if (!Match) return res.status(401).json({message: 'Invalid credentials'});
 
     const token = jwt.sign({id: user._id, role: user.role}, process.env.JWT_SECRET);
-
-    res.json({token});
+    res.json({ token, user: { id: user._id, email: user.email, role: user.role } });
 };
