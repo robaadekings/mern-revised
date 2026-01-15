@@ -14,36 +14,38 @@ module.exports = (io) => {
 
             socket.join(roomId);
             io.to(roomId).emit("userJoined", { user, roomId });
+        });
 
-            //tying indicator
-            socket.on("typing", () => {
-                socket.to(roomId).emit("typing", { username });
+        //tying indicator
+        socket.on("typing", (data) => {
+            socket.to(data.roomId).emit("typing", { username: data.username });
+        });
+
+        socket.on("stopTyping", (data) => {
+            socket.to(data.roomId).emit("stopTyping", { username: data.username });
+        });
+
+        //handle sending message
+        socket.on("sendMessage", async (data) => {
+            const user = await User.findOne({ socketId: socket.id });
+            const message = await Message.create({
+                sender: user._id,
+                room: data.roomId,
+                content: data.content
             });
+            const fullMessage = await message.populate('sender', 'username');
+            io.to(data.roomId).emit("newMessage", fullMessage);
+        });
 
-            socket.on("stopTyping", () => {
-                socket.to(roomId).emit("stopTyping", { username });
-            });
-
-            //handle sending message
-            socket.on("sendMessage", async ( data)=> {
-                const message = await Message.create({
-                    sender: user._id,
-                    room: roomId,
-                    content: data
-                });
-                const fullMessage = await message.populate('sender', 'username');
-                io.to(roomId).emit("newMessage", fullMessage);
-            });
-
-            //handle disconnect
-            socket.on("disconnect", async () => {
-                const offlineUser = await User.findOneAndUpdate(
-                    { socketId: socket.id },
-                    { isOnline: false},
-                );
-                io.emit("useroffline", offlineUser.username);
-            });
-
+        //handle disconnect
+        socket.on("disconnect", async () => {
+            const offlineUser = await User.findOneAndUpdate(
+                { socketId: socket.id },
+                { isOnline: false},
+            );
+            if (offlineUser) {
+                io.emit("userOffline", offlineUser.username);
+            }
         });
     });
 };

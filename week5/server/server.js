@@ -27,8 +27,13 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 
 //connect to database and start server
 
-connectDB();
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+
+connectDB().then(() => {
+    httpServer.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}).catch((error) => {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
 });
